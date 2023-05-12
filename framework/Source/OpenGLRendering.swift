@@ -1,18 +1,20 @@
-#if os(Linux)
-#if GLES
-    import COpenGLES.gles2
-    let GL_DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8_OES
-    let GL_TRUE = GLboolean(1)
-    let GL_FALSE = GLboolean(0)
-#else
-    import COpenGL
+#if canImport(OpenGL)
+import OpenGL.GL3
 #endif
-#else
-#if GLES
-    import OpenGLES
-#else
-    import OpenGL.GL3
+
+#if canImport(OpenGLES)
+import OpenGLES
 #endif
+
+#if canImport(COpenGLES)
+import COpenGLES.gles2
+let GL_DEPTH24_STENCIL8 = GL_DEPTH24_STENCIL8_OES
+let GL_TRUE = GLboolean(1)
+let GL_FALSE = GLboolean(0)
+#endif
+
+#if canImport(COpenGL)
+import COpenGL
 #endif
 
 import Foundation
@@ -170,7 +172,7 @@ func textureUnitForIndex(_ index:Int) -> GLenum {
     }
 }
 
-func generateTexture(minFilter:Int32, magFilter:Int32, wrapS:Int32, wrapT:Int32) -> GLuint {
+public func generateTexture(minFilter:Int32, magFilter:Int32, wrapS:Int32, wrapT:Int32) -> GLuint {
     var texture:GLuint = 0
     
     glActiveTexture(GLenum(GL_TEXTURE1))
@@ -184,6 +186,13 @@ func generateTexture(minFilter:Int32, magFilter:Int32, wrapS:Int32, wrapT:Int32)
     glBindTexture(GLenum(GL_TEXTURE_2D), 0)
     
     return texture
+}
+
+public func uploadLocalArray(data:[GLfloat], into texture:GLuint, size:GLSize) {
+    glActiveTexture(GLenum(GL_TEXTURE1))
+    glBindTexture(GLenum(GL_TEXTURE_2D), texture)
+    glTexImage2D(GLenum(GL_TEXTURE_2D), 0, GL_RGBA, size.width, size.height, 0, GLenum(GL_RGBA), GLenum(GL_FLOAT), data)
+    glBindTexture(GLenum(GL_TEXTURE_2D), 0)
 }
 
 func generateFramebufferForTexture(_ texture:GLuint, width:GLint, height:GLint, internalFormat:Int32, format:Int32, type:Int32, stencil:Bool) throws -> (GLuint, GLuint?) {
